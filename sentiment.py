@@ -8,14 +8,9 @@ import string
 import json
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from sklearn.cluster import KMeans
+from sklearn.manifold import TSNE
 
-#from sklearn.cluster import MiniBatchKMeans as kmeans
-
-#data = ["Dear Chairman Pai, I am concerned about internet regulations. I suggest the commission to repeal Tom Wheeler's decision to control the Internet. Internet users, rather than so-called experts, should be empowered to enjoy whichever applications we want. Tom Wheeler's decision to control the Internet is a exploitation of the open Internet. It ended a pro-consumer policy that functioned very, very successfully for a long time with bipartisan support.", "Chairman Pai: In the matter of the FCC's so-called Open Internet order. I want to recommend you to overturn The previous administration's decision to take over broadband. Internet users, not Washington, should be free to purchase the applications we choose. The previous administration's decision to take over broadband is a perversion of net neutrality. It ended a market-based policy that worked very, very successfully for a long time with broad bipartisan support."]
-
-with open('data.json') as json_data:
+with open('words.json') as json_data:
     data = json.load(json_data)
     #print(d)
 
@@ -23,7 +18,11 @@ clean_data = []
 
 # cleaning data: removing punctuation, uppercase, stopwords, convert to list of words
 for key in data: #list of dict values (comments)
-    clean_data.append(data[key])
+    for element in data[key]:
+        if type(element) != int:
+            clean_data.append(element)
+
+print clean_data
 
 clean_data2 = []
 stop = set(stopwords.words('english'))
@@ -44,7 +43,41 @@ for element in clean_data:
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 model = gensim.models.Word2Vec(clean_data2, min_count = 1)
 model.train(clean_data2, total_examples=model.corpus_count,epochs=model.iter)
-print model
-print model.most_similar(['columbia'])
+#print model
+
+#print model.most_similar(['columbia'])
 
 # kmeans cluster
+
+def tsne_plot(model):
+    #"Creates and TSNE model and plots it"
+    labels = []
+    tokens = []
+
+    for word in model.wv.vocab:
+        tokens.append(model[word])
+        labels.append(word)
+    #print (labels)
+    #print (tokens)
+
+    tsne_model = TSNE(perplexity=40, n_components=2, init='pca', n_iter=2500, random_state=23)
+    new_values = tsne_model.fit_transform(tokens)
+
+    x = []
+    y = []
+    for value in new_values:
+        x.append(value[0])
+        y.append(value[1])
+
+    plt.figure(figsize=(16, 16))
+    for i in range(len(x)):
+        plt.scatter(x[i],y[i])
+        plt.annotate(labels[i],
+                     xy=(x[i], y[i]),
+                     xytext=(5, 2),
+                     textcoords='offset points',
+                     ha='right',
+                     va='bottom')
+    plt.show()
+
+tsne_plot(model)
