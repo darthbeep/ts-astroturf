@@ -9,6 +9,10 @@ def get_reddit():
     g=get_credentials()
     return praw.Reddit(user_agent=g[0], client_id=g[1], client_secret=g[2], username=g[3], password=g[4])
 
+def get_subreddits():
+    f = open('subreddit_list', 'r')
+    return f.read().split()
+
 def get_comments(sub):
     reddit = get_reddit()
     subreddit = reddit.subreddit(sub).hot()
@@ -21,12 +25,17 @@ def get_comments(sub):
             comments.append(comment.body)
     return comments
 
+def get_all_comments():
+    inputs = get_subreddits()
+    subreddit_comments = {}
+    for inp in inputs:
+        subreddit_comments[inp] = get_comments(inp)
+    return subreddit_comments
+
 
 def write_to_file(w):
-    print (w)
     write = json.dumps(w)
-    f = open('data', 'w')
+    f = open('data.json', 'w')
     f.write(write)
 
-c = get_comments('barnard')
-write_to_file(c)
+write_to_file(get_all_comments())
