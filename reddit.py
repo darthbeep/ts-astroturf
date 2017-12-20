@@ -15,21 +15,28 @@ def get_subreddits():
 
 def get_comments(sub):
     reddit = get_reddit()
-    subreddit = reddit.subreddit(sub).hot()
+    subreddit = reddit.subreddit(sub).hot(limit=10)
     comments = []
     for post in subreddit:
+        #i=0
         thread = reddit.submission(id=post)
         for comment in thread.comments:
             if isinstance(comment, MoreComments):
                 continue
             comments.append(comment.body)
+            #i+=1
+            #if i > 2:
+            #    break
     return comments
 
 def get_all_comments():
     inputs = get_subreddits()
     subreddit_comments = {}
     for inp in inputs:
+        print (inp)
         subreddit_comments[inp] = get_comments(inp)
+        f = open(inp, 'w')
+        f.write(json.dumps(subreddit_comments[inp]))
     return subreddit_comments
 
 
